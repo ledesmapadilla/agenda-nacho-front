@@ -25,15 +25,16 @@ export default function LePa() {
   };
 
   const handleCompletar = (id) => {
-    setTareas((prev) => prev.map((t) => (t._id === id ? { ...t, completado: !t.completado } : t)));
+    setTareas((prev) => prev.filter((t) => t._id !== id));
   };
 
   const handleBorrar = (id) => {
     setTareas((prev) => prev.filter((t) => t._id !== id));
   };
 
-  const pendientes  = tareas.filter((t) => !t.completado);
-  const completadas = tareas.filter((t) => t.completado);
+  const tareasPendientes = tareas
+    .filter((t) => !t.completado)
+    .sort((a, b) => (a.urgencia === b.urgencia ? 0 : a.urgencia === "alta" ? -1 : 1));
 
   return (
     <div className="inner-page inner-page--lepa">
@@ -48,11 +49,11 @@ export default function LePa() {
         </header>
 
         <div className="floating-card__body">
-          {tareas.length === 0 ? (
-            <p className="text-muted text-center mt-4">No hay tareas cargadas.</p>
+          {tareasPendientes.length === 0 ? (
+            <p className="text-muted text-center mt-4">No hay tareas pendientes.</p>
           ) : (
             <ul className="tareas-lista">
-              {tareas.map((t) => (
+              {tareasPendientes.map((t) => (
                 <TareaCard
                   key={t._id}
                   tarea={t}
