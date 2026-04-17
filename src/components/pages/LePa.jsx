@@ -1,34 +1,40 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import ModalTarea from "../shared/ModalTarea";
 import ModalVerTarea from "../shared/ModalVerTarea";
 import TareaCard from "../shared/TareaCard";
-
-const MOCK = [
-  { _id: "1", fecha: "2026-04-16", descripcion: "Revisar presupuesto mensual y ajustar partidas según los gastos reales del trimestre.", urgencia: "alta", responsable: "Nacho", completado: false },
-  { _id: "2", fecha: "2026-04-18", descripcion: "Coordinar reunión con proveedores para cierre de contrato anual.", urgencia: "baja", responsable: "Nelson", completado: false },
-  { _id: "3", fecha: "2026-04-20", descripcion: "Actualizar planilla de asistencia del personal operativo.", urgencia: "baja", responsable: "Zamorano", completado: true },
-];
+import { getEventos, createEvento, updateEvento, deleteEvento } from "../../helpers/eventosApi";
 
 export default function LePa() {
-  const [tareas, setTareas]           = useState(MOCK);
+  const [tareas, setTareas]           = useState([]);
   const [showNueva, setShowNueva]     = useState(false);
   const [tareaEditar, setTareaEditar] = useState(null);
   const [tareaVer, setTareaVer]       = useState(null);
+  const [cargando, setCargando]       = useState(true);
 
-  const handleGuardar = (data) => {
+  useEffect(() => {
+    getEventos("lepa")
+      .then(setTareas)
+      .finally(() => setCargando(false));
+  }, []);
+
+  const handleGuardar = async (data) => {
     if (data._id) {
-      setTareas((prev) => prev.map((t) => (t._id === data._id ? { ...t, ...data } : t)));
+      const actualizada = await updateEvento(data._id, data);
+      setTareas((prev) => prev.map((t) => (t._id === actualizada._id ? actualizada : t)));
     } else {
-      setTareas((prev) => [...prev, { ...data, _id: Date.now().toString(), completado: false }]);
+      const nueva = await createEvento("lepa", data);
+      setTareas((prev) => [...prev, nueva]);
     }
   };
 
-  const handleCompletar = (id) => {
+  const handleCompletar = async (id) => {
+    await deleteEvento(id);
     setTareas((prev) => prev.filter((t) => t._id !== id));
   };
 
-  const handleBorrar = (id) => {
+  const handleBorrar = async (id) => {
+    await deleteEvento(id);
     setTareas((prev) => prev.filter((t) => t._id !== id));
   };
 
@@ -49,7 +55,9 @@ export default function LePa() {
         </header>
 
         <div className="floating-card__body">
-          {tareasPendientes.length === 0 ? (
+          {cargando ? (
+            <p className="text-muted text-center mt-4">Cargando...</p>
+          ) : tareasPendientes.length === 0 ? (
             <p className="text-muted text-center mt-4">No hay tareas pendientes.</p>
           ) : (
             <ul className="tareas-lista">
