@@ -3,7 +3,9 @@ import { useForm } from "react-hook-form";
 
 const hoy = () => new Date().toISOString().split("T")[0];
 
-export default function ModalTarea({ show, onClose, onGuardar, onBorrar, onToggleEstado, seccion, accentClass, tareaInicial }) {
+const RESPONSABLES_DEFAULT = ["Nacho", "Jorge", "Javier", "Victor", "Gustavo", "Kevin", "Otros"];
+
+export default function ModalTarea({ show, onClose, onGuardar, onBorrar, onToggleEstado, seccion, accentClass, tareaInicial, responsables = RESPONSABLES_DEFAULT }) {
   const esEdicion = !!tareaInicial;
 
   const {
@@ -87,13 +89,9 @@ export default function ModalTarea({ show, onClose, onGuardar, onBorrar, onToggl
               {...register("responsable", { required: "Requerido" })}
             >
               <option value="">Seleccioná...</option>
-              <option value="Nacho">Nacho</option>
-              <option value="Jorge">Jorge</option>
-              <option value="Javier">Javier</option>
-              <option value="Victor">Victor</option>
-              <option value="Gustavo">Gustavo</option>
-              <option value="Kevin">Kevin</option>
-              <option value="Otros">Otros</option>
+              {responsables.map((r) => (
+                <option key={r} value={r}>{r}</option>
+              ))}
             </select>
             {errors.responsable && <span className="field-error">{errors.responsable.message}</span>}
           </div>
