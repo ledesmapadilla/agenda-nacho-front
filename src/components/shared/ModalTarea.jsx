@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import Swal from "sweetalert2";
 
 const hoy = () => new Date().toISOString().split("T")[0];
 
@@ -27,9 +28,49 @@ export default function ModalTarea({ show, onClose, onGuardar, onBorrar, onToggl
     return () => { document.body.style.overflow = ""; };
   }, [show, reset, esEdicion, tareaInicial]);
 
-  const onSubmit = (data) => {
-    onGuardar({ ...data, _id: tareaInicial?._id, seccion });
+  const onSubmit = async (data) => {
+    await onGuardar({ ...data, _id: tareaInicial?._id, seccion });
     onClose();
+    Swal.fire({
+      toast: true,
+      position: "top-end",
+      icon: "success",
+      title: esEdicion ? "Tarea actualizada" : "Tarea creada",
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+    });
+  };
+
+  const handleTerminar = async () => {
+    const result = await Swal.fire({
+      title: "¿Marcar como terminada?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Sí, terminada",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#2d6a4f",
+    });
+    if (!result.isConfirmed) return;
+    await onToggleEstado(tareaInicial._id);
+    onClose();
+    Swal.fire({ toast: true, position: "top-end", icon: "success", title: "Tarea terminada", showConfirmButton: false, timer: 2000, timerProgressBar: true });
+  };
+
+  const handleBorrar = async () => {
+    const result = await Swal.fire({
+      title: "¿Borrar tarea?",
+      text: "Esta acción no se puede deshacer.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, borrar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#d33",
+    });
+    if (!result.isConfirmed) return;
+    await onBorrar(tareaInicial._id);
+    onClose();
+    Swal.fire({ toast: true, position: "top-end", icon: "success", title: "Tarea eliminada", showConfirmButton: false, timer: 2000, timerProgressBar: true });
   };
 
   if (!show) return null;
@@ -101,10 +142,10 @@ export default function ModalTarea({ show, onClose, onGuardar, onBorrar, onToggl
           <div className="modal-sheet__actions">
             {esEdicion && (
               <>
-                <button type="button" className="btn-estado" onClick={() => { onToggleEstado(tareaInicial._id); onClose(); }}>
+                <button type="button" className="btn-estado" onClick={handleTerminar}>
                   {tareaInicial.completado ? "Pendiente" : "Terminada"}
                 </button>
-                <button type="button" className="btn-borrar" onClick={() => { onBorrar(tareaInicial._id); onClose(); }}>
+                <button type="button" className="btn-borrar" onClick={handleBorrar}>
                   Borrar
                 </button>
               </>
