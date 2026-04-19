@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import ModalTarea from "../shared/ModalTarea";
 import ModalVerTarea from "../shared/ModalVerTarea";
 import TareaCard from "../shared/TareaCard";
+import Toast from "../shared/Toast";
 import { getEventos, createEvento, updateEvento, deleteEvento } from "../../helpers/eventosApi";
 
 export default function LePa() {
@@ -11,6 +12,7 @@ export default function LePa() {
   const [tareaEditar, setTareaEditar] = useState(null);
   const [tareaVer, setTareaVer]       = useState(null);
   const [cargando, setCargando]       = useState(true);
+  const [toast, setToast]             = useState(null);
 
   useEffect(() => {
     getEventos("lepa")
@@ -22,20 +24,24 @@ export default function LePa() {
     if (data._id) {
       const actualizada = await updateEvento(data._id, data);
       setTareas((prev) => prev.map((t) => (t._id === actualizada._id ? actualizada : t)));
+      setToast("Tarea actualizada");
     } else {
       const nueva = await createEvento("lepa", data);
       setTareas((prev) => [...prev, nueva]);
+      setToast("Tarea creada");
     }
   };
 
   const handleCompletar = async (id) => {
     await deleteEvento(id);
     setTareas((prev) => prev.filter((t) => t._id !== id));
+    setToast("Tarea terminada");
   };
 
   const handleBorrar = async (id) => {
     await deleteEvento(id);
     setTareas((prev) => prev.filter((t) => t._id !== id));
+    setToast("Tarea borrada");
   };
 
   const tareasPendientes = tareas
@@ -97,6 +103,8 @@ export default function LePa() {
         tarea={tareaVer}
         onClose={() => setTareaVer(null)}
       />
+
+      <Toast mensaje={toast} onOcultar={() => setToast(null)} />
     </div>
   );
 }
