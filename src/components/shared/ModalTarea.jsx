@@ -87,13 +87,13 @@ export default function ModalTarea({ show, onClose, onGuardar, onBorrar, onToggl
               {...register("responsable", { required: "Requerido" })}
             >
               <option value="">Seleccioná...</option>
-              <option value="Nelson">Nelson</option>
-              <option value="Zamorano">Zamorano</option>
-              <option value="Agustin">Agustín</option>
               <option value="Nacho">Nacho</option>
-              <option value="Mauricio">Mauricio</option>
-              <option value="Juan Jose">Juan Jose</option>
-              <option value="Otro">Otro</option>
+              <option value="Jorge">Jorge</option>
+              <option value="Javier">Javier</option>
+              <option value="Victor">Victor</option>
+              <option value="Gustavo">Gustavo</option>
+              <option value="Kevin">Kevin</option>
+              <option value="Otros">Otros</option>
             </select>
             {errors.responsable && <span className="field-error">{errors.responsable.message}</span>}
           </div>
