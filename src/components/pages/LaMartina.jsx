@@ -1,17 +1,102 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import ModalTarea from "../shared/ModalTarea";
+import ModalVerTarea from "../shared/ModalVerTarea";
+import TareaCard from "../shared/TareaCard";
+import { getEventos, createEvento, updateEvento, deleteEvento } from "../../helpers/eventosApi";
 
 export default function LaMartina() {
+  const [tareas, setTareas]           = useState([]);
+  const [showNueva, setShowNueva]     = useState(false);
+  const [tareaEditar, setTareaEditar] = useState(null);
+  const [tareaVer, setTareaVer]       = useState(null);
+  const [cargando, setCargando]       = useState(true);
+
+  useEffect(() => {
+    getEventos("la-martina")
+      .then(setTareas)
+      .finally(() => setCargando(false));
+  }, []);
+
+  const handleGuardar = async (data) => {
+    if (data._id) {
+      const actualizada = await updateEvento(data._id, data);
+      setTareas((prev) => prev.map((t) => (t._id === actualizada._id ? actualizada : t)));
+    } else {
+      const nueva = await createEvento("la-martina", data);
+      setTareas((prev) => [...prev, nueva]);
+    }
+  };
+
+  const handleCompletar = async (id) => {
+    await deleteEvento(id);
+    setTareas((prev) => prev.filter((t) => t._id !== id));
+  };
+
+  const handleBorrar = async (id) => {
+    await deleteEvento(id);
+    setTareas((prev) => prev.filter((t) => t._id !== id));
+  };
+
+  const tareasPendientes = tareas
+    .filter((t) => !t.completado)
+    .sort((a, b) => (a.urgencia === b.urgencia ? 0 : a.urgencia === "alta" ? -1 : 1));
+
   return (
-    <div>
-      <header className="page-header page-header--martina px-3 px-md-4 py-4">
-        <Link to="/" className="back-btn mb-2">
-          <i className="bi bi-arrow-left" /> Inicio
-        </Link>
-        <h1 className="m-0">La Martina</h1>
-      </header>
-      <div className="container-fluid p-3 p-md-4">
-        <p className="text-muted">Sección La Martina — próximamente.</p>
+    <div className="inner-page inner-page--martina">
+      <div className="floating-card">
+
+        <header className="floating-card__header floating-card__header--martina">
+          <Link to="/" className="floating-card__back">
+            <i className="bi bi-arrow-left" />
+          </Link>
+          <h1 className="floating-card__title">La Martina</h1>
+          <button className="btn-nueva-tarea" onClick={() => setShowNueva(true)}>+</button>
+        </header>
+
+        <div className="floating-card__body">
+          {cargando ? (
+            <p className="text-muted text-center mt-4">Cargando...</p>
+          ) : tareasPendientes.length === 0 ? (
+            <p className="text-muted text-center mt-4">No hay tareas pendientes.</p>
+          ) : (
+            <ul className="tareas-lista">
+              {tareasPendientes.map((t) => (
+                <TareaCard
+                  key={t._id}
+                  tarea={t}
+                  onClick={(t) => setTareaEditar(t)}
+                />
+              ))}
+            </ul>
+          )}
+        </div>
+
       </div>
+
+      <ModalTarea
+        show={showNueva}
+        onClose={() => setShowNueva(false)}
+        onGuardar={handleGuardar}
+        seccion="la-martina"
+        accentClass="btn-accent-martina"
+      />
+
+      <ModalTarea
+        show={!!tareaEditar}
+        onClose={() => setTareaEditar(null)}
+        onGuardar={handleGuardar}
+        onBorrar={handleBorrar}
+        onToggleEstado={handleCompletar}
+        seccion="la-martina"
+        accentClass="btn-accent-martina"
+        tareaInicial={tareaEditar}
+      />
+
+      <ModalVerTarea
+        tarea={tareaVer}
+        onClose={() => setTareaVer(null)}
+      />
     </div>
   );
 }
